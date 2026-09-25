@@ -1,0 +1,6 @@
+.DS_Store
+.claude/
+
+# платные шрифты не публикуем (см. assets/fonts/README.md)
+assets/fonts/*
+!assets/fonts/README.md

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Полина Кузьмина — архив</title>
+  <meta name="description" content="Полина Кузьмина — дизайнер одежды, автор проекта кандиль синап. Архив работ.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23ff2412'/%3E%3C/svg%3E">
+  <script>try{if(localStorage.getItem('pk:invert')==='1'){document.documentElement.classList.add('is-inverted');document.querySelector('meta[name="theme-color"]').content='#ffffff'}}catch(e){}</script>
+  <link rel="preload" href="assets/fonts/punkbabe.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/nhg-display-55.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><polygon id="i-arrow" points="28.71,11.29 27.29,12.71 37.59,23 8,23 8,25 37.59,25 27.29,35.29 28.71,36.71 41.41,24"/></defs></svg>
+
+  <a class="skip" href="#archive">К архиву</a>
+
+  <header class="top" id="top">
+    <p class="intro" id="intro"></p>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#archive">Архив <span class="nav-count" id="nav-count"></span></a>
+      <a href="#about">О Полине</a>
+      <a href="#contact">Контакты</a>
+      <a class="nav-tg" id="nav-tg" href="https://t.me/kandilsinap" target="_blank" rel="noopener">Telegram <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow" transform="rotate(-45 24 24)"/></svg></a>
+    </nav>
+  </header>
+
+  <section class="hero" aria-label="NASEKOLINA — Полина Кузьмина">
+    <h1 class="wordmark" id="wordmark">NASEKOLINA</h1>
+    <div class="hero-meta">
+      <span id="hero-name"></span>
+      <span id="hero-project"></span>
+      <span id="hero-years"></span>
+      <a href="#archive" class="hero-down">Архив <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow" transform="rotate(90 24 24)"/></svg></a>
+    </div>
+  </section>
+
+  <main id="archive" aria-label="Архив работ">
+    <ul class="grid" id="grid"></ul>
+  </main>
+
+  <section class="edits" id="edits" aria-labelledby="edits-title">
+    <h2 class="label" id="edits-title">[Подборки]</h2>
+    <ul class="edit-list" id="edit-list"></ul>
+  </section>
+
+  <section class="about" id="about" aria-labelledby="about-title">
+    <h2 class="label" id="about-title">[О Полине]</h2>
+    <div class="about-text" id="about-text"></div>
+    <div class="approach">
+      <h3 class="label">[Подход]</h3>
+      <ol class="approach-list" id="approach-list"></ol>
+      <figure class="approach-preview" id="approach-preview" aria-hidden="true"><img alt=""></figure>
+    </div>
+    <div class="method">
+      <h3 class="label">[Метод]</h3>
+      <ol class="method-list" id="method-list"></ol>
+    </div>
+  </section>
+
+  <section class="contact" id="contact" aria-labelledby="contact-title">
+    <h2 class="label" id="contact-title">[Контакты]</h2>
+    <div class="contact-body" id="contact-body"></div>
+  </section>
+
+  <footer class="foot">
+    <span id="foot-copy"></span>
+    <a href="#top" class="hero-down">Наверх <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow" transform="rotate(-90 24 24)"/></svg></a>
+  </footer>
+
+  <!-- панель управления архивом, как в референсе -->
+  <div class="toolbar" id="toolbar" role="toolbar" aria-label="Вид архива">
+    <button type="button" data-act="invert" aria-pressed="false">Инверт</button>
+    <button type="button" data-act="filter" aria-expanded="false" aria-controls="filters">Фильтр</button>
+    <span class="tb-density" role="group" aria-label="Размер сетки">
+      <button type="button" data-density="1" aria-label="Крупно">1</button>
+      <button type="button" data-density="2" aria-label="Средне">2</button>
+      <button type="button" data-density="3" aria-label="Мелко">3</button>
+      <button type="button" data-density="4" aria-label="Очень мелко">4</button>
+    </span>
+    <button type="button" data-act="reset" aria-label="Сбросить вид">✕</button>
+  </div>
+  <div class="filters" id="filters" hidden></div>
+
+  <!-- просмотр работы -->
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="v-title" hidden>
+    <aside class="v-info">
+      <div class="v-head">
+        <p class="v-cat" id="v-cat"></p>
+        <h2 class="v-title" id="v-title"></h2>
+      </div>
+      <dl class="v-fields" id="v-fields"></dl>
+      <p class="v-counter" id="v-counter" aria-live="polite"></p>
+      <div class="v-foot">
+        <a class="v-cta" id="v-cta" href="https://t.me/kandilsinap" target="_blank" rel="noopener">Обсудить в Telegram <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow" transform="rotate(-45 24 24)"/></svg></a>
+        <div class="v-nav">
+          <button type="button" id="v-prev"><svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow" transform="rotate(180 24 24)"/></svg> Предыдущая</button>
+          <button type="button" id="v-next">Следующая <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+    </aside>
+    <div class="v-stage" id="v-stage" tabindex="-1"></div>
+    <div class="v-thumbs" id="v-thumbs" aria-label="Все кадры"></div>
+    <button type="button" class="v-close" id="v-close" aria-label="Закрыть">✕</button>
+  </div>
+
+  <script src="data/works.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    /* Agentation (заметки для Claude): только на localhost, выключается через ?annotate=0 */
+    if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && !/[?&]annotate=0\b/.test(location.search)) {
+      const s = document.createElement('script');
+      s.type = 'module';
+      s.src = 'tools/agentation-dev.js';
+      document.body.append(s);
+    }
+  </script>
+</body>
+</html>
