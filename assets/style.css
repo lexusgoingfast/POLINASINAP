@@ -56,10 +56,13 @@
   --panel: rgba(28, 28, 28, 0.72);
   --tile-bg: #0b0b0b;
   --veil: rgba(0, 0, 0, 0.8);
+  --sb: rgba(255, 255, 255, 0.3); /* полоса прокрутки */
 
   --gut: 12px;
   --fs: 12px;
   --lh: 15px;
+  --lead-fs: 12px; /* вводный текст: красный абзац сверху и «О Полине» */
+  --lead-lh: 15px;
   --cols: 7;
 
   --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
@@ -78,6 +81,7 @@
   --panel: rgba(18, 18, 18, 0.9);
   --tile-bg: #efefef;
   --veil: rgba(255, 255, 255, 0.86);
+  --sb: rgba(0, 0, 0, 0.3);
 }
 
 /* на время переворота всё плавно меняет цвет */
@@ -111,6 +115,12 @@ body {
 
 body.is-locked { overflow: hidden; }
 
+/* Полоса прокрутки: тонкая, без дорожки и стрелок, цвет от темы (белая на чёрном, чёрная на белом).
+   scrollbar-color наследуется, поэтому задан один раз на страницу; ширину нужно указать у каждой панели. */
+html { scrollbar-width: thin; scrollbar-color: var(--sb) transparent; }
+.v-info,
+.v-thumbs { scrollbar-width: thin; }
+
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; text-transform: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 img { display: block; max-width: 100%; }
@@ -141,6 +151,8 @@ ol, ul { list-style: none; }
 .intro {
   grid-column: 1 / span 4;
   color: var(--red);
+  font-size: var(--lead-fs);
+  line-height: var(--lead-lh);
   font-weight: 500;
   max-width: 62ch;
 }
@@ -190,6 +202,40 @@ ol, ul { list-style: none; }
 .is-ready .wordmark .l > span { transform: none; }
 .wordmark.is-settled .l { clip-path: none; }
 
+/* Анимация знака из TouchDesigner (assets/hero/hero-loop.mp4), белое на чёрном.
+   Порог в браузере делает каждый кадр строго чёрно-белым (заодно снимает шум сжатия),
+   а инверт сайта переворачивает её вместе со всем остальным. --hero-th — уровень порога, 0…1.
+   Текстовый знак остаётся запасным вариантом: без ролика он показывается вместо анимации. */
+.hero-anim {
+  display: none;
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto 1280 / 364;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.9s var(--ease);
+  filter: grayscale(1) brightness(calc(0.5 / var(--hero-th, 0.5))) contrast(60) invert(0);
+}
+
+.is-inverted .hero-anim { filter: grayscale(1) brightness(calc(0.5 / var(--hero-th, 0.5))) contrast(60) invert(1); }
+.hero.has-anim .hero-anim { display: block; }
+.is-ready .hero-anim { opacity: 1; }
+
+/* в кадре ролика уже есть свободное поле сверху (для разрывов и «l»), лишний отступ не нужен */
+.hero.has-anim { padding-top: 0; }
+
+/* пока показывается ролик, текстовый знак виден только скринридерам */
+.hero.has-anim .wordmark {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
 .hero-meta {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -226,7 +272,8 @@ ol, ul { list-style: none; }
 .v-cta:hover .arrow,
 .v-nav button:hover .arrow,
 .approach-list a:hover .a-work .arrow,
-.contact-main:hover .arrow { animation: arrow-nudge 0.9s ease-in-out infinite; }
+.contact-main:hover .arrow,
+.foot-cap button:hover .arrow { animation: arrow-nudge 0.9s ease-in-out infinite; }
 
 /* ── архив: сетка ──────────────────────────── */
 
@@ -410,8 +457,9 @@ main { container-type: inline-size; }
 }
 
 .edit--all .edit-title { grid-column: 1 / -1; }
-.edit--all .edit-title a { align-items: center; }
+.edit--all .edit-title a { align-items: baseline; }
 .edit-title .arrow { width: 0.8em; height: 0.8em; }
+.edit--all .edit-title .arrow { position: relative; top: 0.133em; } /* в иконке под стрелкой пустое поле 8/48 её высоты: видимый низ встаёт на базовую линию */
 
 /* лента выходит за правое поле, как у референса: последняя миниатюра обрезана краем экрана */
 .edit-rail { grid-column: 4 / -1; position: relative; min-width: 0; margin-right: calc(var(--gut) * -1); }
@@ -502,14 +550,14 @@ main { container-type: inline-size; }
 
 .about-text {
   grid-column: 2 / span 5;
+  max-width: 62ch;
   text-transform: none;
-  font-size: clamp(22px, 2.75vw, 46px);
-  line-height: 1.06;
-  letter-spacing: -0.012em;
+  font-size: var(--lead-fs);
+  line-height: var(--lead-lh);
   font-weight: 500;
 }
 
-.about-text p + p { margin-top: 0.55em; }
+.about-text p + p { margin-top: var(--lead-lh); }
 .about-text em { font-style: normal; color: var(--red); }
 
 .approach,
@@ -607,13 +655,34 @@ main { container-type: inline-size; }
 .contact-rows dd a:hover { color: var(--red); }
 
 .foot {
-  display: flex;
-  justify-content: space-between;
   padding: clamp(90px, 16vh, 180px) var(--gut) calc(var(--gut) + 70px);
   color: var(--muted);
 }
 
-.foot a:hover { color: var(--fg); }
+.foot-row { display: flex; justify-content: space-between; }
+.foot a:hover,
+.foot button:hover { color: var(--fg); }
+
+/* Анимация подвала из TouchDesigner (assets/footer/loop-NN.mp4): на всю ширину экрана, как сетка архива.
+   Порог и инверт те же, что у знака: кадр строго чёрно-белый и переворачивается вместе с сайтом.
+   --foot-th — уровень порога, 0…1. */
+.foot-anim { margin: 0 calc(var(--gut) * -1) clamp(56px, 10vh, 110px); }
+
+.foot-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto 16 / 9;
+  pointer-events: none;
+  user-select: none;
+  filter: grayscale(1) brightness(calc(0.5 / var(--foot-th, 0.5))) contrast(60) invert(0);
+}
+
+.is-inverted .foot-video { filter: grayscale(1) brightness(calc(0.5 / var(--foot-th, 0.5))) contrast(60) invert(1); }
+
+.foot-cap { display: flex; justify-content: space-between; gap: var(--gut); padding: 10px var(--gut) 0; }
+.foot-cap button { display: inline-flex; align-items: center; gap: 6px; }
+.foot-cap button[hidden] { display: none; }
 
 /* ── просмотр работы ──────────────────────── */
 
@@ -753,10 +822,10 @@ main { container-type: inline-size; }
 /* ── телефон ──────────────────────────────── */
 
 @media (max-width: 760px) {
-  :root { --gut: 10px; --fs: 11px; --lh: 14px; }
+  :root { --gut: 10px; --fs: 11px; --lh: 14px; --lead-fs: 13px; --lead-lh: 16px; }
 
   .top { grid-template-columns: 1fr; gap: 14px; }
-  .intro { grid-column: 1; font-size: 13px; line-height: 16px; }
+  .intro { grid-column: 1; }
   .nav { grid-column: 1; flex-direction: row; justify-content: flex-start; gap: 4px 16px; }
 
   .hero { padding-top: 36px; }

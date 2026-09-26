@@ -8,7 +8,6 @@
   <meta name="theme-color" content="#000000">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23ff2412'/%3E%3C/svg%3E">
   <script>try{if(localStorage.getItem('pk:invert')==='1'){document.documentElement.classList.add('is-inverted');document.querySelector('meta[name="theme-color"]').content='#ffffff'}}catch(e){}</script>
-  <link rel="preload" href="assets/fonts/punkbabe.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/nhg-display-55.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/style.css">
 </head>
@@ -27,8 +26,10 @@
     </nav>
   </header>
 
-  <section class="hero" aria-label="NASEKOLINA — Полина Кузьмина">
+  <section class="hero has-anim" aria-label="NASEKOLINA — Полина Кузьмина">
     <h1 class="wordmark" id="wordmark">NASEKOLINA</h1>
+    <!-- Анимация знака из TouchDesigner: assets/hero/, обновляется через tools/prepare_hero.py -->
+    <video class="hero-anim" id="hero-anim" src="assets/hero/hero-loop.mp4" poster="assets/hero/hero-poster.webp" muted loop playsinline preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
     <div class="hero-meta">
       <span id="hero-name"></span>
       <span id="hero-project"></span>
@@ -66,8 +67,18 @@
   </section>
 
   <footer class="foot">
-    <span id="foot-copy"></span>
-    <a href="#top" class="hero-down">Наверх <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow" transform="rotate(-90 24 24)"/></svg></a>
+    <!-- Анимация подвала из TouchDesigner: случайный ролик из assets/footer/, собирается tools/prepare_footer.py -->
+    <figure class="foot-anim" id="foot-anim" hidden>
+      <video class="foot-video" id="foot-video" muted loop playsinline preload="none" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+      <figcaption class="foot-cap">
+        <a id="foot-work" href="#archive"></a>
+        <button type="button" id="foot-reroll">Другой кадр <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      </figcaption>
+    </figure>
+    <div class="foot-row">
+      <span id="foot-copy"></span>
+      <a href="#top" class="hero-down">Наверх <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow" transform="rotate(-90 24 24)"/></svg></a>
+    </div>
   </footer>
 
   <!-- панель управления архивом, как в референсе -->

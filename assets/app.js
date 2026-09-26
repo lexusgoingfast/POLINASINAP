@@ -610,6 +610,80 @@
     }
   });
 
+  /* ── видео-циклы из TouchDesigner ────────── */
+
+  const still = matchMedia('(prefers-reduced-motion: reduce)'); // без движения — только первый кадр
+
+  /* Цикл играет, только пока виден. Возвращает sync — его нужно вызвать после смены источника. */
+  function keepLooping(video) {
+    let inView = true;
+    const sync = () => {
+      if (still.matches || document.hidden || !inView) video.pause();
+      else video.play().catch(() => {}); // экономия энергии может не дать автозапуск — тогда остаётся постер
+    };
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => { inView = e.isIntersecting; sync(); }).observe(video);
+    }
+    document.addEventListener('visibilitychange', sync);
+    still.addEventListener('change', sync);
+    addEventListener('pointerdown', sync, { once: true, passive: true }); // запасной запуск по первому касанию
+    sync();
+    return sync;
+  }
+
+  /* знак на первом экране */
+  const hero = $('.hero');
+  const heroAnim = $('#hero-anim');
+  if (heroAnim) {
+    heroAnim.addEventListener('error', () => hero.classList.remove('has-anim'), { once: true }); // нет ролика — текстовый знак
+    keepLooping(heroAnim);
+  }
+
+  /* подвал: случайный ролик из assets/footer/; подгружается, когда подвал уже близко к экрану */
+  const foot = $('#foot-anim');
+  const footVideo = $('#foot-video');
+  const footLoops = SITE.footerLoops || 0;
+  if (foot && footLoops > 0) {
+    foot.hidden = false; // место под ролик занято сразу, страница не прыгает
+
+    const work = byId.get(SITE.footerWork);
+    const workLink = $('#foot-work');
+    if (work) {
+      workLink.href = `#/${work.id}/0`;
+      workLink.textContent = `[${work.category}] ${titleOf(work)}${work.year ? ', ' + work.year : ''}`;
+    } else workLink.remove();
+
+    const reroll = $('#foot-reroll');
+    reroll.hidden = footLoops < 2;
+
+    let current = -1;
+    const sync = keepLooping(footVideo);
+    const show = (k) => {
+      current = k;
+      const base = `assets/footer/loop-${pad(k + 1)}`;
+      footVideo.poster = base + '.webp';
+      footVideo.preload = 'auto';
+      footVideo.src = base + '.mp4';
+      sync();
+    };
+    const another = () => {
+      let k;
+      do k = Math.floor(Math.random() * footLoops); while (footLoops > 1 && k === current);
+      return k;
+    };
+
+    footVideo.addEventListener('error', () => { foot.hidden = true; }); // нет файлов — блока нет
+    reroll.addEventListener('click', () => show(another()));
+    if ('IntersectionObserver' in window) {
+      const near = new IntersectionObserver(([e]) => {
+        if (!e.isIntersecting) return;
+        near.disconnect();
+        show(another());
+      }, { rootMargin: '900px 0px' });
+      near.observe(foot);
+    } else show(another());
+  }
+
   /* ── старт ─────────────────────────────── */
 
   let rz;
