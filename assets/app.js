@@ -25,6 +25,52 @@
   const large = (src) => src + '-l.webp';
   const touch = matchMedia('(hover: none)').matches;
 
+  /* Проект и направления «Подхода» открываются в том же просмотре, что и работы:
+     собираем из их кадров «работу» со своим id, каждый кадр помнит, откуда он. */
+  const collect = (frames) =>
+    frames.flatMap((f) => {
+      const w = byId.get(f.work);
+      if (!w) return [];
+      return (f.i || w.images.map((_, i) => i))
+        .filter((i) => w.images[i])
+        .map((i) => ({ ...w.images[i], from: { w, i } }));
+    });
+
+  const DIRS = SITE.approach.map((d, k) => {
+    const images = collect(d.frames);
+    return {
+      ...d,
+      dir: true,
+      n: k + 1,
+      category: 'Подход',
+      description: d.text,
+      images,
+      works: [...new Set(images.map((im) => im.from.w))],
+    };
+  });
+  DIRS.forEach((d) => d.images.length && byId.set(d.id, d));
+
+  /* Проекты: кадры всех этапов подряд; этап помнит, с какого кадра он начинается */
+  const PROJECTS = SITE.projects.map((P, n) => {
+    let start = 0;
+    const stages = P.stages.map((st, k) => {
+      const images = collect(st.frames).map((im) => ({ ...im, stage: k }));
+      const out = { ...st, n: k + 1, start, images };
+      start += images.length;
+      return out;
+    });
+    return {
+      ...P,
+      project: true,
+      n: n + 1,
+      category: 'Проект',
+      description: P.text,
+      stages,
+      images: stages.flatMap((st) => st.images),
+    };
+  });
+  PROJECTS.forEach((p) => byId.set(p.id, p));
+
   /* ── тексты ─────────────────────────────── */
 
   $('#intro').innerHTML = brand(SITE.intro);
@@ -32,7 +78,7 @@
   $('#nav-tg').href = SITE.telegram;
   $('#v-cta').href = SITE.telegram;
   $('#hero-name').textContent = `[${SITE.name}]`;
-  $('#hero-project').innerHTML = `[Дизайнер одежды, автор проекта ${brand(SITE.project)}]`;
+  $('#hero-project').innerHTML = `[Дизайнер одежды и костюма]`;
 
   const years = WORKS.map((w) => parseInt(w.year, 10)).filter(Boolean);
   if (years.length) {
@@ -40,32 +86,6 @@
     $('#hero-years').textContent = `[Архив ${a === b ? a : a + '—' + b}]`;
   }
   $('#foot-copy').innerHTML = `© ${new Date().getFullYear()} ${esc(SITE.name)} — ${brand(SITE.project)}`;
-
-  /* ── знак на первом экране: по буквам, во всю ширину ── */
-
-  const wm = $('#wordmark');
-  const mark = SITE.wordmark || SITE.name;
-  wm.setAttribute('aria-label', mark);
-  wm.innerHTML = [...mark]
-    .map((ch, i) => `<span class="l" aria-hidden="true" style="--i:${i}"><span>${ch === ' ' ? '&nbsp;' : esc(ch)}</span></span>`)
-    .join('');
-
-  /* Подгоняем по реальным границам точек, а не по ширине букв:
-     у Punkbabe полутоновые ореолы выходят за пределы знаков. */
-  const measure = document.createElement('canvas').getContext('2d');
-
-  function fitWordmark() {
-    const box = wm.parentElement;
-    const cs = getComputedStyle(box);
-    const avail = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    measure.font = `100px ${getComputedStyle(wm).fontFamily}`;
-    const m = measure.measureText(mark);
-    const left = m.actualBoundingBoxLeft || 0;
-    const ink = left + (m.actualBoundingBoxRight || m.width);
-    const size = Math.floor(((100 * avail) / ink) * 0.995);
-    wm.style.fontSize = size + 'px';
-    wm.style.marginLeft = ((left / 100) * size).toFixed(1) + 'px';
-  }
 
   /* ── сетка архива ───────────────────────── */
 
@@ -90,20 +110,15 @@
             <span class="t-title">${esc(titleOf(w))}</span>
             ${meta ? `<span class="t-meta">${esc(meta)}</span>` : ''}
           </span>
-          <span class="t-num">${k === 0 ? `№ ${pad(w.n)}` : `${pad(g.i + 1)}/${pad(w.images.length)}`}</span>
         </a>
       </li>`;
   }).join('');
 
   /* Разбор кадра на маленьком холсте:
      1) средняя яркость → сила засветки перед инверсией (как в референсе:
-        светлые фото уходят в глубокий чёрный);
-     2) яркость углов, где стоят подписи → белый или чёрный текст,
-        отдельно для негатива, для позитива (инверсия сайта) и для цветного оригинала. */
+        светлые фото уходят в глубокий чёрный). */
   const probe = document.createElement('canvas');
   const pctx = probe.getContext('2d', { willReadFrequently: true });
-  const CONTRAST = 1.14; // то же значение, что в фильтре .t-neg
-  const CONTRAST_POS = 1.06; // то же, что в фильтре .t-neg при .is-inverted
 
   function analyse(img, aspect) {
     try {
@@ -122,29 +137,12 @@
       }
       const b = Math.min(3.25, Math.max(1.15, 0.8 / Math.max(sum / L.length, 0.05)));
       const bp = 1 + (b - 1) * 0.3; // позитив мягче: тёмные кадры чуть приподнимаем, светлые не выжигаем
-      const neg = (v) => (1 - Math.min(1, v * b) - 0.5) * CONTRAST + 0.5;
-      const pos = (v) => (Math.min(1, v * bp) - 0.5) * CONTRAST_POS + 0.5;
-      const region = (x0, y0, x1, y1, f) => {
-        let s = 0, n = 0;
-        for (let y = Math.floor(y0 * H); y < Math.ceil(y1 * H); y++)
-          for (let x = Math.floor(x0 * W); x < Math.ceil(x1 * W); x++) { s += f(L[y * W + x]); n++; }
-        return s / n;
-      };
-      const id = (v) => v;
       return {
         b: b.toFixed(2),
         bp: bp.toFixed(2),
-        cap: region(0, 0, 0.8, 0.2, neg) > 0.5,
-        capP: region(0, 0, 0.8, 0.2, pos) > 0.5,
-        capOn: region(0, 0, 0.8, 0.2, id) > 0.55,
-        num: region(0.6, 0.88, 1, 1, neg) > 0.5,
-        numP: region(0.6, 0.88, 1, 1, pos) > 0.5,
-        numOn: region(0.6, 0.88, 1, 1, id) > 0.55,
       };
     } catch { return null; }
   }
-
-  const ink = (light, on) => (light ? (on ? '#000' : 'rgba(0,0,0,.78)') : on ? '#fff' : 'rgba(255,255,255,.8)');
 
   const tiles = $$('.tile', grid);
   tiles.forEach((t, n) => {
@@ -155,12 +153,6 @@
       if (a) {
         img.style.setProperty('--b', a.b);
         img.style.setProperty('--bp', a.bp);
-        t.style.setProperty('--cap', ink(a.cap));
-        t.style.setProperty('--cap-p', ink(a.capP));
-        t.style.setProperty('--cap-on', ink(a.capOn, true));
-        t.style.setProperty('--num', ink(a.num));
-        t.style.setProperty('--num-p', ink(a.numP));
-        t.style.setProperty('--num-on', ink(a.numOn, true));
       }
       setTimeout(() => t.classList.add('is-loaded'), Math.min(n, 14) * 45);
     };
@@ -294,50 +286,63 @@
     }, { rootMargin: '-35% 0px -35% 0px' }).observe($('#archive'));
   }
 
-  /* ── подборки ───────────────────────────── */
+  /* ── проекты ───────────────────────────── */
+
+  $('#project-list').innerHTML = PROJECTS.map((p) => `
+    <article class="project" id="p-${p.id}">
+      <div class="project-head">
+        <h3 class="project-title${p.title.length > 6 ? ' is-long' : ''}">${esc(p.title)}</h3>
+        <p class="project-meta">${brand(p.meta)}</p>
+        <p class="project-text">${esc(p.text)}</p>
+        <p class="project-links"><a href="#/${p.id}/0">Смотреть проект целиком ${arrow()}</a></p>
+      </div>
+      <ol class="project-stages">
+        ${p.stages.map((st) => {
+          const cover = st.images[0];
+          const cap = `<span class="ps-cap"><span>${pad(st.n)} ${esc(st.title)}${cover ? ` <span class="ps-n">[${st.images.length}]</span>` : ''}</span><span class="ps-text">${esc(st.text)}</span></span>`;
+          return cover
+            ? `<li><a href="#/${p.id}/${st.start}"><figure><img src="${small(cover.src)}" alt="${esc(st.title)}" loading="lazy"></figure>${cap}</a></li>`
+            : `<li class="is-soon"><figure><span>${esc(st.soon || 'Скоро')}</span></figure>${cap}</li>`;
+        }).join('')}
+      </ol>
+    </article>`).join('');
+
+  /* ── подход: направления ────────────────── */
 
   const thumb = (src) => src + '-t.webp';
 
-  /* Лента строки: сначала обложки всех работ подборки, потом вторые кадры и так далее —
-     так подборка из одной работы тоже получает полную ленту, а большая не сводится к первым работам. */
-  function reel(list, cap = 24) {
-    const out = [];
-    for (let k = 0; out.length < cap; k++) {
-      let any = false;
-      for (const w of list) {
-        if (out.length >= cap) break;
-        if (w.images[k]) { out.push({ w, i: k }); any = true; }
-      }
-      if (!any) break;
-    }
-    return out;
-  }
-
   const editList = $('#edit-list');
-  const editRows = (SITE.edits || [])
-    .map((e) => {
-      const list = WORKS.filter((w) => e.cats.includes(w.category));
-      return { ...e, list, items: reel(list) };
-    })
-    .filter((e) => e.items.length);
+  const tgLink = (label) =>
+    `<a class="edit-cta" href="${esc(SITE.telegram)}" target="_blank" rel="noopener">${label} ${arrow(-45)}</a>`;
 
-  editList.innerHTML =
-    editRows
-      .map((e, r) => `
-      <li class="edit">
-        <h3 class="edit-title"><a href="#archive" data-edit="${r}">${esc(e.title)} <span class="edit-n" aria-hidden="true">[${e.list.length}]</span></a></h3>
-        <div class="edit-rail">
-          <div class="edit-strip" role="group" aria-label="${esc(e.title)}">
-            ${e.items
-              .map(({ w, i }) => `<a class="edit-thumb" href="#/${w.id}/${i}" draggable="false" aria-label="${esc(titleOf(w))}, кадр ${i + 1}"><img src="${thumb(w.images[i].src)}" alt="" loading="lazy" decoding="async" draggable="false"></a>`)
+  editList.innerHTML = DIRS.map((d) => {
+    const head = d.images.length
+      ? `<h3 class="edit-title"><a href="#/${d.id}/0">${esc(d.title)} <span class="edit-n" aria-hidden="true">[${d.works.length}]</span></a></h3>`
+      : `<h3 class="edit-title"><span class="edit-name">${esc(d.title)}</span></h3>`;
+    const links = d.images.length
+      ? `<a href="#/${d.id}/0">Смотреть все ${arrow()}</a>${tgLink('Обсудить заказ')}`
+      : tgLink('Обсудить заказ');
+    const rail = d.images.length
+      ? `<div class="edit-rail">
+          <div class="edit-strip" role="group" aria-label="${esc(d.title)}">
+            ${d.images
+              .map((im, k) => `<a class="edit-thumb" href="#/${d.id}/${k}" draggable="false" aria-label="${esc(titleOf(im.from.w))}, кадр ${im.from.i + 1}"><img src="${thumb(im.src)}" alt="" loading="lazy" decoding="async" draggable="false"></a>`)
               .join('')}
           </div>
           <button type="button" class="edit-btn" data-dir="-1" aria-label="Назад" hidden>${arrow(180)}</button>
           <button type="button" class="edit-btn" data-dir="1" aria-label="Вперёд">${arrow(0)}</button>
+        </div>`
+      : `<div class="edit-rail"><p class="edit-soon">${esc(d.soon || 'Скоро')}</p></div>`;
+    return `
+      <li class="edit" id="d-${d.id}">
+        <div class="edit-head">
+          ${head}
+          <p class="edit-text">${esc(d.text)}</p>
+          <p class="edit-links">${links}</p>
         </div>
-      </li>`)
-      .join('') +
-    `<li class="edit edit--all"><h3 class="edit-title"><a href="#archive" class="hero-down" data-edit="all">${esc(SITE.editsAll || 'Весь архив')} ${arrow(-90)}</a></h3></li>`;
+        ${rail}
+      </li>`;
+  }).join('');
 
   /* негатив миниатюры подбирается по яркости кадра, как у плиток */
   $$('.edit-thumb img', editList).forEach((img) => {
@@ -354,8 +359,8 @@
   });
 
   /* лента листается колесом/тачпадом/пальцем; мышью — перетаскиванием и кнопками по краям */
-  $$('.edit-rail', editList).forEach((rail) => {
-    const strip = $('.edit-strip', rail);
+  $$('.edit-strip', editList).forEach((strip) => {
+    const rail = strip.parentElement;
     const [prev, next] = $$('.edit-btn', rail);
     const sync = () => {
       prev.hidden = strip.scrollLeft < 4;
@@ -399,20 +404,6 @@
     });
   });
 
-  /* название подборки → показать её в архиве; «Весь архив» → снять фильтры и вернуться к сетке */
-  editList.addEventListener('click', (e) => {
-    const a = e.target.closest('a[data-edit]');
-    if (!a) return;
-    e.preventDefault();
-    const row = editRows[a.dataset.edit];
-    state.cats = row ? row.cats : [];
-    state.year = null;
-    toggleFilters(false);
-    applyView();
-    const first = row && tiles.find((t) => !t.classList.contains('is-out'));
-    (first || $('#archive')).scrollIntoView({ behavior: 'smooth', block: first ? 'center' : 'start' });
-  });
-
   /* ── о Полине ───────────────────────────── */
 
   $('#about-text').innerHTML = SITE.about
@@ -423,41 +414,6 @@
     const w = byId.get(ref.work);
     return w && { w, img: w.images[ref.i] || w.images[0], href: `#/${w.id}/${ref.i || 0}` };
   };
-
-  const preview = $('#approach-preview');
-  $('#approach-list').innerHTML = SITE.approach
-    .map((a, n) => {
-      const s = shot(a);
-      return `<li><a href="${s ? s.href : '#archive'}" data-src="${s ? small(s.img.src) : ''}">
-        <span class="a-n">${pad(n + 1)}</span>
-        <span>${esc(a.text)}</span>
-        ${s ? `<span class="a-work">${esc(titleOf(s.w))} ${arrow()}</span><img class="a-thumb" src="${small(s.img.src)}" alt="" loading="lazy">` : ''}
-      </a></li>`;
-    })
-    .join('');
-
-  $$('#approach-list a').forEach((a) => {
-    const show = () => {
-      if (!a.dataset.src) return;
-      $('img', preview).src = a.dataset.src;
-      preview.style.transform = `translateY(${a.closest('li').offsetTop}px)`;
-      preview.classList.add('is-on');
-    };
-    a.addEventListener('mouseenter', show);
-    a.addEventListener('focus', show);
-  });
-  $('#approach-list').addEventListener('mouseleave', () => preview.classList.remove('is-on'));
-
-  $('#method-list').innerHTML = SITE.method
-    .map((m, n) => {
-      const s = shot(m);
-      if (!s) return '';
-      return `<li><a href="${s.href}">
-        <figure><img src="${small(s.img.src)}" alt="${esc(m.label)}: ${esc(titleOf(s.w))}" loading="lazy"></figure>
-        <span class="m-cap"><span>${pad(n + 1)} ${esc(m.label)}</span><span>${esc(titleOf(s.w))}</span></span>
-      </a></li>`;
-    })
-    .join('');
 
   /* ── контакты ───────────────────────────── */
 
@@ -486,7 +442,14 @@
   function render(w) {
     $('#v-cat').textContent = `[${w.category}] № ${pad(w.n)}`;
     $('#v-title').textContent = titleOf(w);
-    $('#v-fields').innerHTML = [
+    $('#v-fields').innerHTML = w.project ? [
+      field('Проект / коллекция', brand(w.meta)),
+      field('О проекте', rich(w.description)),
+      field('Этапы', `<ul>${w.stages.map((st) => st.images.length ? `<li><a href="#/${w.id}/${st.start}">${pad(st.n)} ${esc(st.title)}</a></li>` : `<li>${pad(st.n)} ${esc(st.title)} — ${esc((st.soon || 'скоро').toLowerCase())}</li>`).join('')}</ul>`),
+    ].join('') : w.dir ? [
+      field('Направление', rich(w.description)),
+      field('Работы', `<ul>${w.works.map((x) => `<li><a href="#/${x.id}/0">${esc(titleOf(x))}</a></li>`).join('')}</ul>`),
+    ].join('') : [
       field('Год', esc(w.year)),
       w.project || w.collection ? field('Проект / коллекция', brand([w.project, w.collection].filter(Boolean).join(' — '))) : field('Проект / коллекция', ''),
       field('Материалы и техники', w.details.length ? `<ul>${w.details.map((d) => `<li>${rich(d)}</li>`).join('')}</ul>` : ''),
@@ -518,8 +481,10 @@
     const w = current.w;
     k = Math.max(0, Math.min(w.images.length - 1, k));
     current.i = k;
-    const cap = w.images[k].caption;
-    $('#v-counter').innerHTML = `Кадр ${pad(k + 1)} / ${pad(w.images.length)}${cap ? `<span class="v-cap">${rich(cap)}</span>` : ''}`;
+    const { caption: cap, from, stage: sn } = w.images[k];
+    const st = w.project ? `<span class="v-stage-name">Этап ${pad(sn + 1)} · ${esc(w.stages[sn].title)}</span>` : '';
+    const src = from ? `<a class="v-from" href="#/${from.w.id}/${from.i}">${esc(titleOf(from.w))} ${arrow()}</a>` : '';
+    $('#v-counter').innerHTML = `Кадр ${pad(k + 1)} / ${pad(w.images.length)}${st}${src}${cap ? `<span class="v-cap">${rich(cap)}</span>` : ''}`;
     $$('button', thumbs).forEach((b) => b.setAttribute('aria-current', String(+b.dataset.k === k)));
     const tb = thumbs.children[k];
     tb && tb.scrollIntoView({ block: 'nearest' });
@@ -582,9 +547,18 @@
     b && setSlide(+b.dataset.k);
   });
 
+  /* «Предыдущая / Следующая» листают работы, на странице направления — направления,
+     в проекте — этапы */
   const step = (d) => {
-    const n = (current.w.n - 1 + d + WORKS.length) % WORKS.length;
-    const w = WORKS[n];
+    if (current.w.project) {
+      const full = current.w.stages.filter((st) => st.images.length);
+      const now = full.findIndex((st) => current.i < st.start + st.images.length);
+      setSlide(full[(now + d + full.length) % full.length].start);
+      return;
+    }
+    const list = current.w.dir ? DIRS.filter((x) => x.images.length) : WORKS;
+    const n = (list.indexOf(current.w) + d + list.length) % list.length;
+    const w = list[n];
     current = { w, i: 0 };
     render(w);
     stage.scrollTop = stage.scrollLeft = 0;
@@ -610,97 +584,14 @@
     }
   });
 
-  /* ── видео-циклы из TouchDesigner ────────── */
-
-  const still = matchMedia('(prefers-reduced-motion: reduce)'); // без движения — только первый кадр
-
-  /* Цикл играет, только пока виден. Возвращает sync — его нужно вызвать после смены источника. */
-  function keepLooping(video) {
-    let inView = true;
-    const sync = () => {
-      if (still.matches || document.hidden || !inView) video.pause();
-      else video.play().catch(() => {}); // экономия энергии может не дать автозапуск — тогда остаётся постер
-    };
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(([e]) => { inView = e.isIntersecting; sync(); }).observe(video);
-    }
-    document.addEventListener('visibilitychange', sync);
-    still.addEventListener('change', sync);
-    addEventListener('pointerdown', sync, { once: true, passive: true }); // запасной запуск по первому касанию
-    sync();
-    return sync;
-  }
-
-  /* знак на первом экране */
-  const hero = $('.hero');
-  const heroAnim = $('#hero-anim');
-  if (heroAnim) {
-    heroAnim.addEventListener('error', () => hero.classList.remove('has-anim'), { once: true }); // нет ролика — текстовый знак
-    keepLooping(heroAnim);
-  }
-
-  /* подвал: случайный ролик из assets/footer/; подгружается, когда подвал уже близко к экрану */
-  const foot = $('#foot-anim');
-  const footVideo = $('#foot-video');
-  const footLoops = SITE.footerLoops || 0;
-  if (foot && footLoops > 0) {
-    foot.hidden = false; // место под ролик занято сразу, страница не прыгает
-
-    const work = byId.get(SITE.footerWork);
-    const workLink = $('#foot-work');
-    if (work) {
-      workLink.href = `#/${work.id}/0`;
-      workLink.textContent = `[${work.category}] ${titleOf(work)}${work.year ? ', ' + work.year : ''}`;
-    } else workLink.remove();
-
-    const reroll = $('#foot-reroll');
-    reroll.hidden = footLoops < 2;
-
-    let current = -1;
-    const sync = keepLooping(footVideo);
-    const show = (k) => {
-      current = k;
-      const base = `assets/footer/loop-${pad(k + 1)}`;
-      footVideo.poster = base + '.webp';
-      footVideo.preload = 'auto';
-      footVideo.src = base + '.mp4';
-      sync();
-    };
-    const another = () => {
-      let k;
-      do k = Math.floor(Math.random() * footLoops); while (footLoops > 1 && k === current);
-      return k;
-    };
-
-    footVideo.addEventListener('error', () => { foot.hidden = true; }); // нет файлов — блока нет
-    reroll.addEventListener('click', () => show(another()));
-    if ('IntersectionObserver' in window) {
-      const near = new IntersectionObserver(([e]) => {
-        if (!e.isIntersecting) return;
-        near.disconnect();
-        show(another());
-      }, { rootMargin: '900px 0px' });
-      near.observe(foot);
-    } else show(another());
-  }
-
   /* ── старт ─────────────────────────────── */
 
   let rz;
   addEventListener('resize', () => {
     cancelAnimationFrame(rz);
-    rz = requestAnimationFrame(() => { fitWordmark(); applyView(); });
+    rz = requestAnimationFrame(applyView);
   });
 
   applyView();
-  fitWordmark();
-  const ready = () => {
-    if (document.body.classList.contains('is-ready')) return;
-    fitWordmark();
-    requestAnimationFrame(() => document.body.classList.add('is-ready'));
-    setTimeout(() => wm.classList.add('is-settled'), 1100 + mark.length * 45);
-  };
-  (document.fonts ? document.fonts.ready : Promise.resolve()).then(ready);
-  setTimeout(ready, 1500); // если шрифт не загрузился (офлайн) — показываем имя системным
   route();
 })();

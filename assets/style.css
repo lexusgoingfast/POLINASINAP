@@ -1,8 +1,7 @@
 /* ─────────────────────────────────────────────
    Полина Кузьмина — архив
    Чёрный лист, одна гарнитура, сетка без зазоров.
-   Весь текст — Neue Haas Grotesk Display Pro,
-   знак NASEKOLINA — Punkbabe.
+   Весь текст — Neue Haas Grotesk Display Pro.
    ───────────────────────────────────────────── */
 
 @font-face {
@@ -35,14 +34,6 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-}
-
-@font-face {
-  font-family: 'Punkbabe';
-  src: url('fonts/punkbabe.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: block;
 }
 
 :root {
@@ -172,68 +163,7 @@ ol, ul { list-style: none; }
 /* ── первый экран ──────────────────────────── */
 
 .hero {
-  padding: clamp(40px, 9vh, 110px) var(--gut) 14px;
-}
-
-/* NASEKOLINA: полутоновые буквы Punkbabe во всю ширину листа */
-.wordmark {
-  font-family: 'Punkbabe', 'NHG Display', sans-serif;
-  font-weight: 400;
-  font-size: 12vw; /* уточняется в JS под ширину точек */
-  line-height: 1;
-  padding-bottom: 0.07em; /* точки у «i» опускаются ниже строки */
-  letter-spacing: 0;
-  text-transform: none;
-  white-space: nowrap;
-}
-
-/* буквы по очереди поднимаются из-под нижней кромки;
-   маска режет только снизу и снимается после появления,
-   чтобы полутоновые ореолы соседних букв не обрезались */
-.wordmark .l {
-  display: inline-block;
-  vertical-align: top;
-  padding-bottom: 0.1em;
-  margin-bottom: -0.1em;
-  clip-path: inset(-1em -0.6em 0 -0.6em);
-}
-
-.wordmark .l > span { display: inline-block; transform: translateY(110%); transition: transform 1s var(--ease); transition-delay: calc(var(--i) * 45ms); }
-.is-ready .wordmark .l > span { transform: none; }
-.wordmark.is-settled .l { clip-path: none; }
-
-/* Анимация знака из TouchDesigner (assets/hero/hero-loop.mp4), белое на чёрном.
-   Порог в браузере делает каждый кадр строго чёрно-белым (заодно снимает шум сжатия),
-   а инверт сайта переворачивает её вместе со всем остальным. --hero-th — уровень порога, 0…1.
-   Текстовый знак остаётся запасным вариантом: без ролика он показывается вместо анимации. */
-.hero-anim {
-  display: none;
-  width: 100%;
-  height: auto;
-  aspect-ratio: auto 1280 / 364;
-  pointer-events: none;
-  user-select: none;
-  opacity: 0;
-  transition: opacity 0.9s var(--ease);
-  filter: grayscale(1) brightness(calc(0.5 / var(--hero-th, 0.5))) contrast(60) invert(0);
-}
-
-.is-inverted .hero-anim { filter: grayscale(1) brightness(calc(0.5 / var(--hero-th, 0.5))) contrast(60) invert(1); }
-.hero.has-anim .hero-anim { display: block; }
-.is-ready .hero-anim { opacity: 1; }
-
-/* в кадре ролика уже есть свободное поле сверху (для разрывов и «l»), лишний отступ не нужен */
-.hero.has-anim { padding-top: 0; }
-
-/* пока показывается ролик, текстовый знак виден только скринридерам */
-.hero.has-anim .wordmark {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
+  padding: clamp(28px, 6vh, 64px) var(--gut) 0;
 }
 
 .hero-meta {
@@ -244,6 +174,7 @@ ol, ul { list-style: none; }
   color: var(--muted);
 }
 
+.hero-meta h1 { font: inherit; }
 .hero-meta > :nth-child(1) { grid-column: 1; }
 .hero-meta > :nth-child(2) { grid-column: 2 / span 2; }
 .hero-meta > :nth-child(3) { grid-column: 4; }
@@ -271,13 +202,14 @@ ol, ul { list-style: none; }
 .nav-tg:hover .arrow,
 .v-cta:hover .arrow,
 .v-nav button:hover .arrow,
-.approach-list a:hover .a-work .arrow,
-.contact-main:hover .arrow,
-.foot-cap button:hover .arrow { animation: arrow-nudge 0.9s ease-in-out infinite; }
+.contact-main:hover .arrow { animation: arrow-nudge 0.9s ease-in-out infinite; }
 
 /* ── архив: сетка ──────────────────────────── */
 
 main { container-type: inline-size; }
+
+.archive { padding-top: clamp(28px, 5vh, 56px); }
+.archive > .label { display: block; padding: 0 var(--gut) 12px; }
 
 .grid {
   display: grid;
@@ -329,33 +261,19 @@ main { container-type: inline-size; }
   z-index: 2;
   display: flex;
   flex-direction: column;
-  color: var(--cap, rgba(255, 255, 255, 0.8));
+  align-items: flex-start;
   pointer-events: none;
-  transition: color var(--t-img);
+}
+
+/* подложка под каждой строкой подписи: читается на любом кадре */
+.t-cap > span {
+  max-width: 100%;
+  padding: 1px 4px 0;
+  background: var(--bg);
+  color: var(--fg);
 }
 
 .t-cap .t-title { overflow-wrap: anywhere; }
-
-.t-num {
-  position: absolute;
-  right: var(--gut);
-  bottom: var(--gut);
-  z-index: 2;
-  color: var(--num, rgba(255, 255, 255, 0.8));
-  pointer-events: none;
-  transition: color var(--t-img);
-}
-
-/* цвет подписи подбирается в JS по яркости угла кадра — отдельно для негатива,
-   позитива (инверсия сайта) и цветного оригинала */
-.is-inverted .t-cap { color: var(--cap-p, rgba(0, 0, 0, 0.8)); }
-.is-inverted .t-num { color: var(--num-p, rgba(0, 0, 0, 0.8)); }
-
-.tile:hover .t-cap,
-.tile.is-live .t-cap { color: var(--cap-on, #fff); }
-
-.tile:hover .t-num,
-.tile.is-live .t-num { color: var(--num-on, #fff); }
 
 /* фильтр: остальное гаснет, как в референсе */
 .tile.is-out { opacity: 0.1; pointer-events: none; }
@@ -415,13 +333,64 @@ main { container-type: inline-size; }
 .filters button[aria-pressed='true']::before { content: '●'; }
 .filters .f-n { color: var(--muted); margin-left: auto; }
 
-/* ── подборки ──────────────────────────────── */
+/* ── проекты: путь от эскиза до результата ── */
+
+.projects { padding: clamp(80px, 13vh, 150px) var(--gut) 0; }
+.projects > .label { display: block; padding-bottom: 12px; }
+
+.project {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0 var(--gut);
+  padding-bottom: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.project-head { grid-column: 1 / span 2; padding-top: 14px; }
+
+.project-title {
+  font-size: clamp(64px, 9vw, 160px);
+  line-height: 0.86;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.project-title.is-long { font-size: clamp(36px, 4vw, 72px); line-height: 0.92; letter-spacing: -0.03em; }
+
+.project-meta { margin-top: 12px; }
+.project-text { max-width: 34ch; margin-top: 10px; text-transform: none; color: var(--muted); }
+.project-links { margin-top: 14px; }
+.project-links a { display: inline-flex; align-items: center; gap: 6px; }
+.project-links a:hover { color: var(--red); }
+.project-links a:hover .arrow { animation: arrow-nudge 0.9s ease-in-out infinite; }
+
+.project-stages {
+  grid-column: 3 / -1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--gut);
+  padding-top: 14px;
+}
+
+.project-stages a { display: block; }
+.project-stages figure { aspect-ratio: 2 / 3; overflow: hidden; background: var(--tile-bg); }
+.project-stages img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); transition: transform 1.2s var(--ease), filter 0.5s; }
+.project-stages a:hover img { filter: none; transform: scale(1.03); }
+.project-stages a:hover .ps-cap > span:first-child { color: var(--red); }
+.project-stages .is-soon figure { display: grid; place-items: center; background: none; border: 1px dashed var(--dim); color: var(--muted); }
+.ps-cap { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; }
+.ps-n, .ps-text { color: var(--muted); }
+.ps-text { text-transform: none; }
+
+/* ── подход: направления ───────────────────── */
 
 .edits { padding: clamp(80px, 13vh, 150px) var(--gut) 0; }
-.edits > .label { padding-bottom: 12px; }
+.edits > .label { display: block; padding-bottom: 12px; }
+.edit-list { border-bottom: 1px solid var(--line); }
 
 .edit {
-  --tw: clamp(66px, 6.1vw, 132px); /* ширина миниатюры, высота — 5/4 от неё */
+  --tw: clamp(84px, 8.4vw, 160px); /* ширина миниатюры, высота — 5/4 от неё */
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   column-gap: var(--gut);
@@ -429,7 +398,14 @@ main { container-type: inline-size; }
   border-top: 1px solid var(--line);
 }
 
-.edit-title { grid-column: 1 / span 3; font: inherit; }
+.edit-head { grid-column: 1 / span 3; padding: 14px 0; }
+.edit-title { font: inherit; }
+.edit-text { max-width: 38ch; margin-top: 10px; text-transform: none; color: var(--muted); }
+.edit-links { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 10px; }
+.edit-links a { display: inline-flex; align-items: center; gap: 6px; }
+.edit-links a:hover { color: var(--red); }
+.edit-links a:hover .arrow { animation: arrow-nudge 0.9s ease-in-out infinite; }
+.edit-links .edit-cta { --nx: 2px; --ny: -2px; }
 
 .edit-title a {
   display: inline-flex;
@@ -445,6 +421,7 @@ main { container-type: inline-size; }
 }
 
 .edit-title a:hover { color: var(--red); }
+.edit-title span.edit-name { display: inline-flex; align-items: flex-start; gap: 8px; padding: 0.18em 0; font-size: clamp(30px, 3.6vw, 56px); line-height: 1; letter-spacing: -0.03em; font-weight: 500; text-transform: none; }
 
 .edit-n {
   padding-top: 5px;
@@ -456,10 +433,18 @@ main { container-type: inline-size; }
   color: var(--muted);
 }
 
-.edit--all .edit-title { grid-column: 1 / -1; }
-.edit--all .edit-title a { align-items: baseline; }
 .edit-title .arrow { width: 0.8em; height: 0.8em; }
-.edit--all .edit-title .arrow { position: relative; top: 0.133em; } /* в иконке под стрелкой пустое поле 8/48 её высоты: видимый низ встаёт на базовую линию */
+
+/* направление без кадров: плашка вместо ленты */
+.edit-soon {
+  display: flex;
+  align-items: center;
+  height: calc(var(--tw) * 1.25);
+  margin: 12px var(--gut) 12px 0;
+  padding: 0 16px;
+  border: 1px dashed var(--dim);
+  color: var(--muted);
+}
 
 /* лента выходит за правое поле, как у референса: последняя миниатюра обрезана краем экрана */
 .edit-rail { grid-column: 4 / -1; position: relative; min-width: 0; margin-right: calc(var(--gut) * -1); }
@@ -560,70 +545,6 @@ main { container-type: inline-size; }
 .about-text p + p { margin-top: var(--lead-lh); }
 .about-text em { font-style: normal; color: var(--red); }
 
-.approach,
-.method {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: subgrid;
-  margin-top: clamp(70px, 12vh, 140px);
-  position: relative;
-}
-
-.approach > .label,
-.method > .label { grid-column: 1; }
-
-.approach-list { grid-column: 2 / span 4; border-top: 1px solid var(--line); }
-
-.approach-list li { border-bottom: 1px solid var(--line); }
-
-.approach-list a {
-  display: grid;
-  grid-template-columns: 3.2em 1fr auto;
-  align-items: baseline;
-  padding: 10px 0 9px;
-  font-size: clamp(20px, 2.1vw, 34px);
-  line-height: 1;
-  letter-spacing: -0.005em;
-  font-weight: 500;
-  transition: color 0.25s, padding 0.35s var(--ease);
-}
-
-.approach-list .a-n,
-.approach-list .a-work { font-size: var(--fs); letter-spacing: 0.02em; font-weight: 400; color: var(--muted); }
-.approach-list .a-thumb { display: none; }
-.approach-list a:hover { color: var(--red); padding-left: 10px; }
-
-/* превью плывёт к строке под курсором и не занимает места в раскладке */
-.approach-preview {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: calc((100% - 6 * var(--gut)) / 7);
-  aspect-ratio: 2 / 3;
-  background: var(--tile-bg);
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s, transform 0.5s var(--ease);
-}
-
-.approach-preview.is-on { opacity: 1; }
-.approach-preview img { width: 100%; height: 100%; object-fit: cover; }
-
-.method-list {
-  grid-column: 2 / -1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--gut);
-}
-
-.method-list a { display: block; }
-.method-list figure { aspect-ratio: 2 / 3; overflow: hidden; background: var(--tile-bg); position: relative; }
-.method-list img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--ease), filter 0.5s; filter: grayscale(1); }
-.method-list a:hover img { transform: scale(1.03); filter: none; }
-.method-list .m-cap { display: flex; justify-content: space-between; padding-top: 8px; }
-.method-list .m-cap span:last-child { color: var(--muted); }
-
 /* ── контакты ─────────────────────────────── */
 
 .contact-body { grid-column: 2 / -1; }
@@ -663,27 +584,6 @@ main { container-type: inline-size; }
 .foot a:hover,
 .foot button:hover { color: var(--fg); }
 
-/* Анимация подвала из TouchDesigner (assets/footer/loop-NN.mp4): на всю ширину экрана, как сетка архива.
-   Порог и инверт те же, что у знака: кадр строго чёрно-белый и переворачивается вместе с сайтом.
-   --foot-th — уровень порога, 0…1. */
-.foot-anim { margin: 0 calc(var(--gut) * -1) clamp(56px, 10vh, 110px); }
-
-.foot-video {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: auto 16 / 9;
-  pointer-events: none;
-  user-select: none;
-  filter: grayscale(1) brightness(calc(0.5 / var(--foot-th, 0.5))) contrast(60) invert(0);
-}
-
-.is-inverted .foot-video { filter: grayscale(1) brightness(calc(0.5 / var(--foot-th, 0.5))) contrast(60) invert(1); }
-
-.foot-cap { display: flex; justify-content: space-between; gap: var(--gut); padding: 10px var(--gut) 0; }
-.foot-cap button { display: inline-flex; align-items: center; gap: 6px; }
-.foot-cap button[hidden] { display: none; }
-
 /* ── просмотр работы ──────────────────────── */
 
 .viewer {
@@ -722,6 +622,11 @@ main { container-type: inline-size; }
 
 .v-counter { color: var(--muted); }
 .v-counter .v-cap { display: block; color: var(--fg); text-transform: none; font-size: 13px; line-height: 17px; margin-top: 4px; max-width: 46ch; }
+.v-counter .v-stage-name { display: block; margin-top: 4px; color: var(--fg); }
+.v-counter .v-from { display: flex; align-items: center; gap: 6px; margin-top: 4px; color: var(--fg); }
+.v-counter .v-from:hover { color: var(--red); }
+.v-counter .v-from:hover .arrow { animation: arrow-nudge 0.9s ease-in-out infinite; }
+.v-fields a:hover { color: var(--red); }
 
 .v-foot { margin-top: auto; display: grid; gap: 14px; }
 
@@ -830,13 +735,30 @@ main { container-type: inline-size; }
 
   .hero { padding-top: 36px; }
 
+  .projects { padding-top: 80px; }
+  .project { grid-template-columns: 1fr; }
+  .project-head,
+  .project-stages { grid-column: 1; }
+  .project-stages {
+    display: flex;
+    gap: 6px;
+    margin-right: calc(var(--gut) * -1);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .project-stages::-webkit-scrollbar { display: none; }
+  .project-stages li { flex: 0 0 42vw; }
+  .project-stages img { filter: none; }
+
   .edits { padding-top: 80px; }
-  .edit { grid-template-columns: 1fr; --tw: 25vw; }
-  .edit-title,
+  .edit { grid-template-columns: 1fr; --tw: 28vw; }
+  .edit-head,
   .edit-rail { grid-column: 1; }
-  .edit-title a { font-size: 30px; padding: 12px 0 0; }
-  .edit--all .edit-title a { padding-bottom: 12px; }
+  .edit-head { padding: 12px 0 0; }
+  .edit-title a,
+  .edit-title span.edit-name { font-size: 30px; }
   .edit-strip { padding: 10px 0 14px; }
+  .edit-soon { margin: 10px 0 14px; height: auto; padding: 16px; }
 
   .hero-meta { grid-template-columns: 1fr 1fr; gap: 2px var(--gut); }
   .hero-meta > :nth-child(n) { grid-column: auto; text-align: left; }
@@ -849,26 +771,9 @@ main { container-type: inline-size; }
   .about-text,
   .contact-body { grid-column: 1; }
 
-  .approach,
-  .method { grid-template-columns: 1fr; gap: 14px; }
-  .approach > .label,
-  .method > .label,
-  .approach-list,
-  .method-list { grid-column: 1; }
-  .approach-preview { display: none; }
-
-  .approach-list a { grid-template-columns: 2.4em 1fr 46px; align-items: center; font-size: 24px; padding: 8px 0; }
-  .approach-list .a-work { display: none; }
-  .approach-list .a-thumb { display: block; width: 46px; aspect-ratio: 2 / 3; object-fit: cover; }
-
-  .method-list { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-  .method-list .m-cap { flex-direction: column; }
-  .method-list img { filter: none; }
-
   .contact-rows { grid-template-columns: 1fr; gap: 12px; }
   .contact-rows > div { grid-column: 1; }
 
-  .t-num { display: none; }
   .grid[data-cols='3'] .t-cap,
   .grid[data-cols='4'] .t-cap { font-size: 9px; line-height: 11px; top: 6px; left: 6px; right: 6px; }
   .grid[data-cols='4'] .t-cap .t-meta { display: none; }
@@ -915,6 +820,5 @@ main { container-type: inline-size; }
   *, *::before, *::after,
   :root.is-flipping, :root.is-flipping *, :root.is-flipping *::before, :root.is-flipping *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
   html { scroll-behavior: auto; }
-  .wordmark .l > span { transform: none; }
   .arrow { animation: none !important; }
 }

@@ -20,45 +20,42 @@
     <p class="intro" id="intro"></p>
     <nav class="nav" aria-label="Разделы">
       <a href="#archive">Архив <span class="nav-count" id="nav-count"></span></a>
+      <a href="#projects">Проекты</a>
+      <a href="#approach">Подход</a>
       <a href="#about">О Полине</a>
       <a href="#contact">Контакты</a>
       <a class="nav-tg" id="nav-tg" href="https://t.me/kandilsinap" target="_blank" rel="noopener">Telegram <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow" transform="rotate(-45 24 24)"/></svg></a>
     </nav>
   </header>
 
-  <section class="hero has-anim" aria-label="NASEKOLINA — Полина Кузьмина">
-    <h1 class="wordmark" id="wordmark">NASEKOLINA</h1>
-    <!-- Анимация знака из TouchDesigner: assets/hero/, обновляется через tools/prepare_hero.py -->
-    <video class="hero-anim" id="hero-anim" src="assets/hero/hero-loop.mp4" poster="assets/hero/hero-poster.webp" muted loop playsinline preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+  <section class="hero" aria-labelledby="hero-name">
     <div class="hero-meta">
-      <span id="hero-name"></span>
+      <h1 id="hero-name"></h1>
       <span id="hero-project"></span>
       <span id="hero-years"></span>
       <a href="#archive" class="hero-down">Архив <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow" transform="rotate(90 24 24)"/></svg></a>
     </div>
   </section>
 
-  <main id="archive" aria-label="Архив работ">
+  <main class="archive" id="archive" aria-labelledby="archive-title">
+    <h2 class="label" id="archive-title">[Архив]</h2>
     <ul class="grid" id="grid"></ul>
   </main>
 
-  <section class="edits" id="edits" aria-labelledby="edits-title">
-    <h2 class="label" id="edits-title">[Подборки]</h2>
+  <section class="projects" id="projects" aria-labelledby="projects-title">
+    <h2 class="label" id="projects-title">[Проекты]</h2>
+    <div id="project-list"></div>
+  </section>
+
+  <section class="edits" id="approach" aria-labelledby="approach-title">
+    <h2 class="label" id="approach-title">[Подход]</h2>
     <ul class="edit-list" id="edit-list"></ul>
   </section>
+
 
   <section class="about" id="about" aria-labelledby="about-title">
     <h2 class="label" id="about-title">[О Полине]</h2>
     <div class="about-text" id="about-text"></div>
-    <div class="approach">
-      <h3 class="label">[Подход]</h3>
-      <ol class="approach-list" id="approach-list"></ol>
-      <figure class="approach-preview" id="approach-preview" aria-hidden="true"><img alt=""></figure>
-    </div>
-    <div class="method">
-      <h3 class="label">[Метод]</h3>
-      <ol class="method-list" id="method-list"></ol>
-    </div>
   </section>
 
   <section class="contact" id="contact" aria-labelledby="contact-title">
@@ -67,14 +64,6 @@
   </section>
 
   <footer class="foot">
-    <!-- Анимация подвала из TouchDesigner: случайный ролик из assets/footer/, собирается tools/prepare_footer.py -->
-    <figure class="foot-anim" id="foot-anim" hidden>
-      <video class="foot-video" id="foot-video" muted loop playsinline preload="none" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
-      <figcaption class="foot-cap">
-        <a id="foot-work" href="#archive"></a>
-        <button type="button" id="foot-reroll">Другой кадр <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-      </figcaption>
-    </figure>
     <div class="foot-row">
       <span id="foot-copy"></span>
       <a href="#top" class="hero-down">Наверх <svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-arrow" transform="rotate(-90 24 24)"/></svg></a>

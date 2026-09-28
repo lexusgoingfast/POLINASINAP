@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Админка — NASEKOLINA</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23ff2412'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="../" target="_blank" rel="noopener">NASEKOLINA <span>/ админка</span></a>
+    <nav class="tabs" id="tabs" hidden>
+      <button type="button" data-tab="works" aria-pressed="true">Работы</button>
+      <button type="button" data-tab="projects" aria-pressed="false">Проекты</button>
+      <button type="button" data-tab="approach" aria-pressed="false">Подход</button>
+      <button type="button" data-tab="texts" aria-pressed="false">Тексты</button>
+    </nav>
+    <p class="status" id="status" aria-live="polite"></p>
+    <div class="actions" id="actions" hidden>
+      <button type="button" class="btn" id="discard">Отменить правки</button>
+      <button type="button" class="btn btn--main" id="save" disabled>Сохранить</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <p class="loading">Загрузка…</p>
+  </main>
+
+  <div class="modal" id="modal" hidden></div>
+
+  <script src="serialize.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
