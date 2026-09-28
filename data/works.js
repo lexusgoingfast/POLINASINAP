@@ -123,7 +123,7 @@ const SITE = {
         {
           title: 'Готовая сумка',
           text: 'Сумка на белом фоне и в руках.',
-          frames: [{ work: 'round-bag', i: [0, 1, 2, 3] }],
+          frames: [{ work: 'round-bag', i: [1, 0, 2, 3] }],
         },
         {
           title: 'Съёмка',
@@ -300,8 +300,8 @@ const WORKS = [
       'эффектом.',
     details: ['эко-кожа', '«мятый» и «жжёный» эффект', 'подкладка', 'идеально круглая форма'],
     images: [
-      { src: 'img/round-bag/01', w: 1280, h: 853 },
       { src: 'img/round-bag/02', w: 1280, h: 960 },
+      { src: 'img/round-bag/01', w: 1280, h: 853 },
       { src: 'img/round-bag/03', w: 957, h: 1280 },
       { src: 'img/round-bag/04', w: 960, h: 1280 },
       { src: 'img/round-bag/05', w: 960, h: 1280 },
@@ -319,7 +319,7 @@ const WORKS = [
       { src: 'img/round-bag/17', w: 960, h: 1280, caption: 'Фабрик-манипуляция' },
       { src: 'img/round-bag/18', w: 1494, h: 2000, caption: 'Фабрик-манипуляция' },
     ],
-    grid: [{ i: 0, size: 's' }, { i: 2, size: 's' }],
+    grid: [{ i: 1, size: 's' }, { i: 2, size: 's' }, { i: 0, size: 'w' }],
   },
   {
     id: 'slim-hoodie',
