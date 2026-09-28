@@ -940,7 +940,9 @@
   });
 
   (async () => {
-    const local = await fetch('/__admin/ping', { cache: 'no-store' }).then((r) => r.ok && r.json()).catch(() => null);
+    // локальный режим — только когда админка открыта на этом же компьютере через tools/serve.py
+    const onThisMachine = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+    const local = onThisMachine && (await fetch('/__admin/ping', { cache: 'no-store' }).then((r) => r.ok && r.json()).catch(() => null));
     if (local && local.mode === 'local') {
       S.mode = 'local';
       return loadLocal().catch((e) => status('Не удалось прочитать data/works.js: ' + e.message, 'error'));
