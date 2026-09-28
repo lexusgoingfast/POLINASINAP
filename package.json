@@ -1,4 +1,8 @@
 {
+  "private": true,
+  "scripts": {
+    "vercel-build": "node tools/fetch-fonts.mjs"
+  },
   "devDependencies": {
     "agentation": "^3.1.2"
   }

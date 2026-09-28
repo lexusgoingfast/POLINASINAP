@@ -21,6 +21,7 @@ tools/prepare_footer.py  ролики подвала из TouchDesigner → asse
 tools/loops.py           общее для двух скриптов: порог, H.264, постер
 tools/agentation-dev.js  панель заметок для Claude (только localhost)
 tools/serve.py           локальный сервер; через него же админка сохраняет в папку проекта
+tools/fetch-fonts.mjs    сборка на Vercel: скачивает шрифты из Vercel Blob (FONTS_URL)
 ```
 
 ## Посмотреть локально
@@ -118,6 +119,11 @@ Safari на iPhone не проигрывает видео с серверов б
 Как собрать файлы из своих: [assets/fonts/README.md](assets/fonts/README.md).
 Для публикации сайта нужна веб-лицензия. Punkbabe (был нужен только для знака NASEKOLINA)
 сайтом больше не используется.
+
+**Шрифты на Vercel.** При выкладке из GitHub шрифтов в репозитории нет, поэтому сборка
+(`package.json` → `vercel-build` → `tools/fetch-fonts.mjs`) скачивает их из хранилища Vercel Blob
+проекта (`nasekolina-fonts`). Адрес — переменная окружения `FONTS_URL` в настройках проекта на Vercel.
+Новые файлы шрифтов нужно загрузить туда же: `vercel blob put файл.woff2 --pathname fonts/файл.woff2`.
 
 ## Заметки для Claude (Agentation)
 
